@@ -28,5 +28,9 @@ class TestHtmlNode(unittest.TestCase):
             " a=\"b\" c=\"d\""
         )
 
+    def test_props_to_html_when_not_set(self):
+        node = HTMLNode()
+        self.assertEqual(node.props_to_html(), "")
+
 if __name__ == "__main__":
     unittest.main()
