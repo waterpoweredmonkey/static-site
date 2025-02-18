@@ -1,4 +1,11 @@
-from conversion import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
+from conversion import (
+    extract_markdown_images,
+    extract_markdown_links, 
+    split_nodes_delimiter,
+    split_nodes_link,
+    split_nodes_image,
+    text_to_textnodes
+)
 from textnode import TextNode, TextType
 import unittest
 
@@ -197,6 +204,101 @@ class TestConversion(unittest.TestCase):
     def test_extract_markdown_links_mixed(self):
         expected = [("to boot dev", "https://www.boot.dev")]
         actual = extract_markdown_links("This is text with a link [to boot dev](https://www.boot.dev) and ![rick roll](https://i.imgur.com/aKaOqIh.gif)")
+        self.assertEqual(expected, actual)
+
+    def test_split_nodes_link(self):
+        node = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        expected = [
+            TextNode("This is text with a link ", TextType.TEXT),
+            TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+            TextNode(" and ", TextType.TEXT),
+            TextNode(
+                "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
+            ),
+        ]
+        self.assertEqual(new_nodes, expected)
+
+    def test_split_nodes_image(self):
+        node = TextNode(
+            "This is text with a link ![to boot dev](https://www.boot.dev) and ![to youtube](https://www.youtube.com/@bootdotdev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        expected = [
+            TextNode("This is text with a link ", TextType.TEXT),
+            TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+            TextNode(" and ", TextType.TEXT),
+            TextNode(
+                "to youtube", TextType.IMAGE, "https://www.youtube.com/@bootdotdev"
+            ),
+        ]
+        self.assertEqual(new_nodes, expected)
+
+    def test_split_nodes_image_returns_originals_when_no_links_present(self):
+        expected = [
+            TextNode("This is text without a link ", TextType.TEXT),
+            TextNode("neither node has a link", TextType.TEXT),
+            TextNode("neither does this bold text", TextType.BOLD),
+        ]
+        self.assertEqual(split_nodes_image(expected), expected)
+
+    def test_split_image(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_image_single(self):
+        node = TextNode(
+            "![image](https://www.example.COM/IMAGE.PNG)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://www.example.COM/IMAGE.PNG"),
+            ],
+            new_nodes,
+        )
+
+    def test_text_to_textnodes(self):
+        actual = text_to_textnodes("This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)")
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+        ]
+        self.assertEqual(expected, actual)
+
+    def test_text_to_textnodes_w_o_links(self):
+        actual = text_to_textnodes("This is **text** with an *italic* word and a `code block`")
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE)
+        ]
         self.assertEqual(expected, actual)
 
 if __name__ == "__main__":
