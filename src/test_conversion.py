@@ -1,10 +1,11 @@
 from conversion import (
     extract_markdown_images,
-    extract_markdown_links, 
+    extract_markdown_links,
     split_nodes_delimiter,
     split_nodes_link,
     split_nodes_image,
-    text_to_textnodes
+    text_to_textnodes,
+    markdown_to_html_node
 )
 from textnode import TextNode, TextType
 import unittest
@@ -300,6 +301,62 @@ class TestConversion(unittest.TestCase):
             TextNode("code block", TextType.CODE)
         ]
         self.assertEqual(expected, actual)
+
+    def test_paragraphs(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+        """
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+    def test_headings(self):
+        md = """
+# 1
+
+## 2
+
+### 3
+
+#### 4
+
+##### 5
+
+###### 6
+
+# 7
+        """
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h1>1</h1><h2>2</h2><h3>3</h3><h4>4</h4><h5>5</h5><h6>6</h6><h1>7</h1></div>",
+        )
+
+    def test_codeblock(self):
+        md = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+        """
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
+        )
 
 if __name__ == "__main__":
     unittest.main()

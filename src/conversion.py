@@ -1,5 +1,11 @@
 import re
-from textnode import TextNode, TextType
+
+from markdown_blocks import markdown_to_blocks, BlockType
+from src.htmlnode import ParentNode, LeafNode
+from src.markdown_blocks import block_to_block_type
+from src.textnode import heading_node_to_html_node, text_nodes_to_html_nodes
+from textnode import TextNode, TextType, HeadingNode
+
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
@@ -76,5 +82,57 @@ def text_to_textnodes(text):
     new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
     new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.CODE)
     new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
+    new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
     new_nodes = split_nodes_image(new_nodes)
     return split_nodes_link(new_nodes)
+
+def heading_to_headingnode(heading):
+    heading_parts = heading.split(" ", 1)
+    heading_type = heading_parts[0]
+    heading_text = heading_parts[1]
+    return HeadingNode(heading_text, len(heading_type))
+
+def block_to_node(block):
+    block_type = block_to_block_type(block)
+    match block_type.value:
+        case BlockType.PARAGRAPH.value:
+            text_nodes = text_to_textnodes(block)
+            html_nodes = text_nodes_to_html_nodes(text_nodes)
+            if len(html_nodes) > 0:
+                return [ParentNode("p", html_nodes)]
+            else:
+                return []
+        case BlockType.HEADING.value:
+            return [heading_node_to_html_node(heading_to_headingnode(block))]
+        case BlockType.CODE.value:
+            return [ParentNode("pre", [LeafNode("code", block[4:-3])])] # todo maybe trim the first and last lines?
+        case BlockType.QUOTE.value:
+            text_nodes = text_to_textnodes(block) # todo maybe strip the > from the beginning of the line
+            html_nodes = text_nodes_to_html_nodes(text_nodes)
+            return [ParentNode("blockquote", html_nodes)]
+        case BlockType.ULIST.value:
+            items = block.split("\n")
+            html_nodes = []
+            for item in items:
+                item_text = item[2:] # strip the "- " from the front of the item
+                html_nodes.append(LeafNode("li", item_text))
+            return [ParentNode("ul", html_nodes)]
+        case BlockType.OLIST.value:
+            items = block.split("\n")
+            html_nodes = []
+            for item in items:
+                item_text = item[3:]  # strip the "\d. " from the front of the item
+                html_nodes.append(LeafNode("li", item_text))
+            return [ParentNode("ol", html_nodes)]
+        case _:
+            raise ValueError(f"Unknown block type: {block_type}")
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    nodes = []
+    for block in blocks:
+        nodes.extend(block_to_node(block))
+    html_nodes = []
+    for node in nodes:
+        html_nodes.extend(node.to_html())
+    return ParentNode("div", nodes)

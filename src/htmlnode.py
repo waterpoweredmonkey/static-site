@@ -1,6 +1,6 @@
 
 
-class HTMLNode():
+class HTMLNode:
     def __init__(self, tag = None, value = None, children = None, props = None):
         self.tag = tag
         self.value = value
@@ -11,7 +11,7 @@ class HTMLNode():
         raise NotImplementedError
     
     def props_to_html(self):
-        if self.props == None:
+        if self.props is None:
             return ""
         return "".join(f" {key}=\"{value}\"" for key, value in self.props.items())
     
@@ -35,9 +35,9 @@ class LeafNode(HTMLNode):
 
     def to_html(self):
         tag = self.tag
-        if self.value == None:
+        if self.value is None:
             raise ValueError("All LeafNodes must have a value")
-        if tag == None:
+        if tag is None:
             return self.value
         
         return f"<{tag}{self.props_to_html()}>{self.value}</{tag}>"
