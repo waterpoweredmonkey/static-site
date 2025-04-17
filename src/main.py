@@ -1,5 +1,6 @@
 import os
 import shutil
+from generate import generate_page
 
 from textnode import TextNode, TextType
 
@@ -21,6 +22,8 @@ def copy_directory(src, dest):
 
 
 def delete_directory(path):
+    if not os.path.exists(path):
+        return
     for filename in os.listdir(path):
         file_path = os.path.join(path, filename)
         try:
@@ -36,6 +39,7 @@ def delete_directory(path):
 def refresh_public():
     delete_directory('./public')
     copy_directory('./static', './public')
+    generate_page('./content/index.md', './template.html', './public/index.html')
 
 def main():
     refresh_public()
