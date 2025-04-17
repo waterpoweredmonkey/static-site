@@ -45,7 +45,7 @@ def main():
     if len(sys.argv) > 1:
         basepath = sys.argv[1]
     else:
-        basepath = "./"
+        basepath = "/"
 
     refresh_public(basepath)
 
