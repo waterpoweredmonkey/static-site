@@ -1,6 +1,8 @@
 import os
 import shutil
-from generate import generate_pages
+import sys
+
+from generate import generate_pages_recursive
 
 def copy_directory(src, dest):
     print(f"Copying directory: {src} to {dest}")
@@ -34,12 +36,17 @@ def delete_directory(path):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-def refresh_public():
-    delete_directory('./public')
-    copy_directory('./static', './public')
-    generate_pages('./content', './template.html', './public')
+def refresh_public(basepath):
+    delete_directory('docs')
+    copy_directory('static', 'docs')
+    generate_pages_recursive(basepath, 'content', 'template.html', 'docs')
 
 def main():
-    refresh_public()
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+    else:
+        basepath = "./"
+
+    refresh_public(basepath)
 
 main()

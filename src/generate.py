@@ -8,8 +8,8 @@ def extract_title(markdown):
         raise Exception("Header not found")
     return matches[0]
 
-def generate_page(from_path, template_path, dest_path):
-    print(f"Generating page from: {from_path} to {dest_path} using template: {template_path}")
+def generate_page(basepath, from_path, template_path, dest_path):
+    print(f"Generating page from: {from_path} to {dest_path} using template: {template_path}, basepath: {basepath}")
     if not os.path.exists(from_path):
         raise Exception(f"from_path does not exist: {from_path}")
     if not os.path.exists(template_path):
@@ -30,21 +30,26 @@ def generate_page(from_path, template_path, dest_path):
             template_file.read()
                 .replace("{{ Title }}", title)
                 .replace("{{ Content }}", content)
+                .replace("href=\"/", f"href=\"{basepath}")
+                .replace("src=\"/", f"src=\"{basepath}")
         )
     finally:
         in_file.close()
         template_file.close()
         out_file.close()
 
-def generate_pages(from_dir, template_path, dest_dir):
+def generate_pages_recursive(base_path, from_dir, template_path, dest_dir):
+    print(f"Generating pages at base_path: {base_path},  from: {from_dir} to {dest_dir} using template: {template_path}")
     if not os.path.exists(from_dir):
+        print(f"from_dir does not exist: {from_dir}")
         return
     if not os.path.exists(dest_dir):
+        print(f"dest_dir does not exist so creating: {dest_dir}")
         os.mkdir(dest_dir)
     for filename in os.listdir(from_dir):
         from_path = os.path.join(from_dir, filename)
         dest_path = os.path.join(dest_dir, filename.replace(".md", ".html"))
         if os.path.isfile(from_path) or os.path.islink(from_path):
-            generate_page(from_path, template_path, dest_path)
+            generate_page(base_path, from_path, template_path, dest_path)
         elif os.path.isdir(from_path):
-            generate_pages(from_path, template_path, dest_path)
+            generate_pages_recursive(base_path, from_path, template_path, dest_path)
