@@ -35,3 +35,16 @@ def generate_page(from_path, template_path, dest_path):
         in_file.close()
         template_file.close()
         out_file.close()
+
+def generate_pages(from_dir, template_path, dest_dir):
+    if not os.path.exists(from_dir):
+        return
+    if not os.path.exists(dest_dir):
+        os.mkdir(dest_dir)
+    for filename in os.listdir(from_dir):
+        from_path = os.path.join(from_dir, filename)
+        dest_path = os.path.join(dest_dir, filename.replace(".md", ".html"))
+        if os.path.isfile(from_path) or os.path.islink(from_path):
+            generate_page(from_path, template_path, dest_path)
+        elif os.path.isdir(from_path):
+            generate_pages(from_path, template_path, dest_path)

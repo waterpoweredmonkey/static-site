@@ -1,8 +1,6 @@
 import os
 import shutil
-from generate import generate_page
-
-from textnode import TextNode, TextType
+from generate import generate_pages
 
 def copy_directory(src, dest):
     print(f"Copying directory: {src} to {dest}")
@@ -39,7 +37,7 @@ def delete_directory(path):
 def refresh_public():
     delete_directory('./public')
     copy_directory('./static', './public')
-    generate_page('./content/index.md', './template.html', './public/index.html')
+    generate_pages('./content', './template.html', './public')
 
 def main():
     refresh_public()
