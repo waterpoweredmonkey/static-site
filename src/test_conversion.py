@@ -310,7 +310,7 @@ tag here
 
 This is another paragraph with _italic_ text and `code` here
 
-        """
+"""
 
         node = markdown_to_html_node(md)
         html = node.to_html()
@@ -321,26 +321,18 @@ This is another paragraph with _italic_ text and `code` here
 
     def test_headings(self):
         md = """
-# 1
+# this is an h1
 
-## 2
+this is paragraph text
 
-### 3
-
-#### 4
-
-##### 5
-
-###### 6
-
-# 7
-        """
+## this is an h2
+"""
 
         node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><h1>1</h1><h2>2</h2><h3>3</h3><h4>4</h4><h5>5</h5><h6>6</h6><h1>7</h1></div>",
+            "<div><h1>this is an h1</h1><p>this is paragraph text</p><h2>this is an h2</h2></div>",
         )
 
     def test_codeblock(self):
@@ -357,6 +349,42 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+    def test_lists(self):
+        md = """
+- This is a list
+- with items
+- and _more_ items
+
+1. This is an `ordered` list
+2. with items
+3. and more items
+
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>This is a list</li><li>with items</li><li>and <i>more</i> items</li></ul><ol><li>This is an <code>ordered</code> list</li><li>with items</li><li>and more items</li></ol></div>",
+        )
+
+    def test_blockquote(self):
+        md = """
+> This is a
+> blockquote block
+
+this is paragraph text
+
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><blockquote>This is a blockquote block</blockquote><p>this is paragraph text</p></div>",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

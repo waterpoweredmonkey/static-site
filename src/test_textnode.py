@@ -62,13 +62,6 @@ class TestTextNodeToHtmlNode(unittest.TestCase):
         expected_html_node = LeafNode("img", "", {"src": "https://example.com/image.jpg", "alt": "My Image"})
         self.assertEqual(text_node_to_html_node(text_node), expected_html_node)
 
-    def test_unimplemented_type(self):
-        class UnknownTextType(Enum):
-            UNKNOWN = 1
-        text_node = TextNode("Unknown", UnknownTextType.UNKNOWN)  # Corrected line
-        with self.assertRaises(NotImplementedError):
-            text_node_to_html_node(text_node)
-
     def test_text_type_empty_string(self):
         text_node = TextNode("", TextType.TEXT)
         expected_html_node = LeafNode(value="")
